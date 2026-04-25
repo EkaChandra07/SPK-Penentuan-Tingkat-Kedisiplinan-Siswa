@@ -1,7 +1,12 @@
 <?php
-$conn = mysqli_connect("localhost", "root", "", "spk_siswa");
+$host = 'localhost';
+$user = 'root';
+$pass = '';
+$db   = 'spk_siswa';
+
+$conn = mysqli_connect($host, $user, $pass, $db);
 
 if (!$conn) {
-    die("Koneksi gagal: " . mysqli_connect_error());
+    die('Koneksi gagal: ' . mysqli_connect_error());
 }
 ?>
