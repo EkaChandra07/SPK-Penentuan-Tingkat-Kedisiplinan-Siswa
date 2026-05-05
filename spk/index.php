@@ -20,32 +20,52 @@
 <h1>Sistem Pendukung Keputusan - Penentuan Tingkat Kedisiplinan Siswa</h1>
 
 <?php
-include 'koneksi.php';
-$query = mysqli_query($conn, "SELECT * FROM siswa ORDER BY kode ASC");
+$koneksi_path = __DIR__ . '/koneksi.php';
+
+if (!file_exists($koneksi_path)) {
+    die("ERROR: File koneksi.php tidak ditemukan di: " . $koneksi_path);
+}
+
+include $koneksi_path;
+
+if (!isset($conn)) {
+    die("ERROR: Variable \$conn tidak terdefinisi. Periksa koneksi.php");
+}
+
+// ✅ FIX URUTAN KODE
+$query = mysqli_query($conn, "
+    SELECT * FROM siswa 
+    ORDER BY CAST(SUBSTRING(kode, 2) AS UNSIGNED) ASC
+");
+
+if (!$query) {
+    die("ERROR Query: " . mysqli_error($conn));
+}
+
 $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
 ?>
 
 <h2>Data Siswa</h2>
 <table>
-    <tr>
-        <th>Kode</th>
-        <th>Nama</th>
-        <th>Kehadiran</th>
-        <th>Terlambat</th>
-        <th>Pelanggaran</th>
-        <th>Sikap</th>
-    </tr>
+<tr>
+    <th>Kode</th>
+    <th>Nama</th>
+    <th>Kehadiran</th>
+    <th>Terlambat</th>
+    <th>Pelanggaran</th>
+    <th>Sikap</th>
+</tr>
 
-    <?php foreach($rows as $r): ?>
-    <tr>
-        <td><?= htmlspecialchars($r['kode']) ?></td>
-        <td><?= htmlspecialchars($r['nama']) ?></td>
-        <td><?= $r['kehadiran'] ?></td>
-        <td><?= $r['terlambat'] ?></td>
-        <td><?= $r['pelanggaran'] ?></td>
-        <td><?= $r['sikap'] ?></td>
-    </tr>
-    <?php endforeach; ?>
+<?php foreach($rows as $r): ?>
+<tr>
+    <td><?= htmlspecialchars($r['kode']) ?></td>
+    <td><?= htmlspecialchars($r['nama']) ?></td>
+    <td><?= $r['kehadiran'] ?></td>
+    <td><?= $r['terlambat'] ?></td>
+    <td><?= $r['pelanggaran'] ?></td>
+    <td><?= $r['sikap'] ?></td>
+</tr>
+<?php endforeach; ?>
 </table>
 
 <button onclick="hitung()">Hitung SAW & Ranking</button>
@@ -61,29 +81,29 @@ $rows = mysqli_fetch_all($query, MYSQLI_ASSOC);
 <script>
 function hitung() {
     fetch('hitung_saw.php')
-        .then(response => response.json())
-        .then(data => {
-            let html = "<h2>Hasil Ranking SAW</h2>";
-            html += "<table>";
-            html += "<tr><th>Ranking</th><th>Kode</th><th>Nama</th><th>Skor</th></tr>";
+    .then(res => res.json())
+    .then(data => {
 
-            data.forEach(d => {
-                html += `<tr>
-                            <td>${d.ranking}</td>
-                            <td>${d.kode}</td>
-                            <td>${d.nama}</td>
-                            <td>${d.skor}</td>
-                         </tr>`;
-            });
+        let html = "<h2>Hasil Ranking SAW</h2>";
+        html += "<table>";
+        html += "<tr><th>Ranking</th><th>Kode</th><th>Nama</th><th>Skor</th></tr>";
 
-            html += "</table>";
-            document.getElementById('hasil').innerHTML = html;
-            document.getElementById('tombolEvaluasi').style.display = 'block';
-        })
-        .catch(error => {
-            document.getElementById('hasil').innerHTML =
-                `<p style="color:red;">Terjadi error: ${error}</p>`;
+        data.forEach(d => {
+            html += `<tr>
+                        <td>${d.ranking}</td>
+                        <td>${d.kode}</td>
+                        <td>${d.nama}</td>
+                        <td>${d.skor}</td>
+                     </tr>`;
         });
+
+        html += "</table>";
+
+        document.getElementById('hasil').innerHTML = html;
+
+        // tampilkan tombol evaluasi
+        document.getElementById('tombolEvaluasi').style.display = 'block';
+    });
 }
 </script>
 

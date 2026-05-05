@@ -1,10 +1,22 @@
 <?php
-include 'koneksi.php';
+require_once 'koneksi.php';
+
+// Cek apakah $conn terdefinisi
+if (!isset($conn) || !$conn) {
+    die("<h3>ERROR: Koneksi database gagal!</h3>
+         <p>Periksa file koneksi.php dan pastikan database tersedia.</p>
+         <a href='index.php'>← Kembali</a>");
+}
 
 /* =========================================================
    CEK APAKAH HASIL SAW SUDAH ADA
 ========================================================= */
 $cek = mysqli_query($conn, "SELECT COUNT(*) AS total FROM hasil_saw");
+
+if (!$cek) {
+    die("<h3>ERROR Query: " . mysqli_error($conn) . "</h3>");
+}
+
 $jumlah = mysqli_fetch_assoc($cek)['total'];
 
 if ($jumlah == 0) {
